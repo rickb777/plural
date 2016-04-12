@@ -9,6 +9,7 @@
 //
 // This package is able to format countable things and continuous values. It can handle integers
 // and floating point numbers equally and this allows you to decide to what extent each is appropriate.
+//
 // For example, "2 cars" might weigh "1.6 tonnes"; both categories are covered.
 //
 // This API is deliberately simple; it doesn't address the full gamut of internationalisation. If that's
