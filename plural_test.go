@@ -1,6 +1,9 @@
 package plural
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestPluralFormatIntEnglish(t *testing.T) {
 	plurals := Plurals{Case{0, "nothing"}, Case{1, "%v thing"}, Case{2, "%v things"}}
@@ -44,4 +47,22 @@ func TestPluralFormatIntEnglish(t *testing.T) {
 
 func ip(v int) *int {
 	return &v
+}
+
+func ExamplePlurals() {
+	// Plurals{} holds a sequence of cardinal cases where the first match is used, otherwise the last one is used.
+	// The last case will typically include a "%v" placeholder for the number.
+	// carPlurals and weightPlurals provide English formatted cases for some number of cars and their weight.
+	var carPlurals = Plurals{Case{0, "no cars"}, Case{1, "%v car"}, Case{2, "%v cars"}}
+	var weightPlurals = Plurals{Case{0, "weigh nothing"}, Case{1, "weighs %g tonne"}, Case{2, "weigh %1.1f tonnes"}}
+
+	for d := 0; d < 4; d++ {
+		s, _ := carPlurals.Format(d)
+		w, _ := weightPlurals.Format(float32(d) * 0.6)
+		fmt.Printf("%s %s\n", s, w)
+	}
+	// Output: no cars weigh nothing
+	// 1 car weighs 0.6 tonne
+	// 2 cars weigh 1.2 tonnes
+	// 3 cars weigh 1.8 tonnes
 }
