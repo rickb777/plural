@@ -1,5 +1,8 @@
 # plural - Simple Go API for Pluralisation.
 
+[![GoDoc](https://img.shields.io/badge/api-Godoc-blue.svg?style=flat-square)](https://godoc.org/github.com/rickb777/plural)
+[![Build Status](https://travis-ci.org/rickb777/plural.svg?branch=master)](https://travis-ci.org/rickb777/plural)
+
 Package plural provides simple support for localising plurals in a flexible range of different styles.
 There are considerable differences around the world in the way plurals are handled. This API is
 a simple but competent API for catering with these differences when formatting text to
