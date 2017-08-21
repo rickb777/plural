@@ -3,9 +3,9 @@
 // license that can be found in the LICENSE file.
 
 // Package plural provides simple support for localising plurals in a flexible range of different styles.
-// There are considerable differences around the world in the way plurals are handled. This API is
-// a simple but competent API for catering with these differences when formatting text to
-// present to people.
+//
+// There are considerable differences around the world in the way plurals are handled. This is
+// a simple but competent API for catering with these differences when presenting to people formatted text with numbers.
 //
 // This package is able to format countable things and continuous values. It can handle integers
 // and floating point numbers equally and this allows you to decide to what extent each is appropriate.
