@@ -3,6 +3,7 @@
 [![GoDoc](https://img.shields.io/badge/api-Godoc-blue.svg?style=flat-square)](https://godoc.org/github.com/rickb777/plural)
 [![Build Status](https://travis-ci.org/rickb777/plural.svg?branch=master)](https://travis-ci.org/rickb777/plural)
 [![Coverage Status](https://coveralls.io/repos/rickb777/plural/badge.svg?branch=master&service=github)](https://coveralls.io/github/rickb777/plural?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/rickb777/plural)](https://goreportcard.com/report/github.com/rickb777/plural)
 
 Package plural provides simple support for localising plurals in a flexible range of different styles.
 
