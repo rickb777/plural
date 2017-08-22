@@ -61,6 +61,8 @@ func (plurals Plurals) Format(value interface{}) (string, error) {
 		return plurals.FormatInt(int(*x)), nil
 	case *int64:
 		return plurals.FormatInt(int(*x)), nil
+	case *uint:
+		return plurals.FormatInt(int(*x)), nil
 	case *uint8:
 		return plurals.FormatInt(int(*x)), nil
 	case *uint16:

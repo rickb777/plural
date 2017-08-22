@@ -30,10 +30,21 @@ func TestPluralFormatIntEnglish(t *testing.T) {
 		{float32(2.1), "2.1 things"},
 		{float64(3), "3 things"},
 		{float64(3.00001), "3.00001 things"},
+		{fp32(3), "3 things"},
+		{fp64(3), "3 things"},
 		{ip(0), "nothing"},
 		{ip(1), "1 thing"},
 		{ip(2), "2 things"},
 		{ip(3), "3 things"},
+		{ip8(3), "3 things"},
+		{ip16(3), "3 things"},
+		{ip32(3), "3 things"},
+		{ip64(3), "3 things"},
+		{uip(3), "3 things"},
+		{uip8(3), "3 things"},
+		{uip16(3), "3 things"},
+		{uip32(3), "3 things"},
+		{uip64(3), "3 things"},
 	}
 	for _, c := range cases {
 		s, err := p012.Format(c.n)
@@ -65,6 +76,50 @@ func TestErrorCase(t *testing.T) {
 }
 
 func ip(v int) *int {
+	return &v
+}
+
+func ip8(v int8) *int8 {
+	return &v
+}
+
+func ip16(v int16) *int16 {
+	return &v
+}
+
+func ip32(v int32) *int32 {
+	return &v
+}
+
+func ip64(v int64) *int64 {
+	return &v
+}
+
+func uip(v uint) *uint {
+	return &v
+}
+
+func uip8(v uint8) *uint8 {
+	return &v
+}
+
+func uip16(v uint16) *uint16 {
+	return &v
+}
+
+func uip32(v uint32) *uint32 {
+	return &v
+}
+
+func uip64(v uint64) *uint64 {
+	return &v
+}
+
+func fp32(v float32) *float32 {
+	return &v
+}
+
+func fp64(v float64) *float64 {
 	return &v
 }
 
