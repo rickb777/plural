@@ -6,7 +6,7 @@ import (
 )
 
 func TestPluralFormatIntEnglish(t *testing.T) {
-	plurals := Plurals{Case{0, "nothing"}, Case{1, "%v thing"}, Case{2, "%v things"}}
+	p012 := Plurals{Case{0, "nothing"}, Case{1, "%v thing"}, Case{2, "%v things"}}
 
 	cases := []struct {
 		n      interface{}
@@ -36,11 +36,30 @@ func TestPluralFormatIntEnglish(t *testing.T) {
 		{ip(3), "3 things"},
 	}
 	for _, c := range cases {
-		s, err := plurals.Format(c.n)
+		s, err := p012.Format(c.n)
 		if err != nil {
 			t.Errorf("Format(%d) => %v, want %s", c.n, err, c.expect)
 		} else if s != c.expect {
 			t.Errorf("Format(%d) == %s, want %s", c.n, s, c.expect)
+		}
+	}
+}
+
+func TestErrorCase(t *testing.T) {
+	plurals := Plurals{Case{0, "nothing"}, Case{1, "%v thing"}, Case{2, "%v things"}}
+
+	cases := []struct {
+		n      interface{}
+		expect string
+	}{
+		{"foo", "Unexpected type string for foo"},
+	}
+	for _, c := range cases {
+		_, err := plurals.Format(c.n)
+		if err == nil {
+			t.Errorf("Format(%#v) no error, want %s", c.n, c.expect)
+		} else if err.Error() != c.expect {
+			t.Errorf("Format(%v) == %s, want %s", c.n, err.Error(), c.expect)
 		}
 	}
 }
