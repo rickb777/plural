@@ -18,6 +18,10 @@ For example, `2 cars` might weigh `1.6 tonnes`; both categories are covered.
 This API is deliberately simple; it doesn't address the full gamut of internationalisation. If that's
 what you need, you should consider products such as https://github.com/nicksnyder/go-i18n instead.
 
+## Installation
+
+    go get -u github.com/rickb777/plural
+
 ## Status
 
 This library has been in reliable production use for some time. Versioning follows the well-known semantic version pattern.
