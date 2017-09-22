@@ -4,6 +4,7 @@
 [![Build Status](https://travis-ci.org/rickb777/plural.svg?branch=master)](https://travis-ci.org/rickb777/plural)
 [![Coverage Status](https://coveralls.io/repos/github/rickb777/plural/badge.svg?branch=master&service=github)](https://coveralls.io/github/rickb777/plural?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/rickb777/plural)](https://goreportcard.com/report/github.com/rickb777/plural)
+[![Issues](https://img.shields.io/github/issues/rickb777/plural.svg)](https://github.com/rickb777/plural/issues)
 
 Package plural provides simple support for localising plurals in a flexible range of different styles.
 
