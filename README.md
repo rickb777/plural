@@ -26,4 +26,3 @@ what you need, you should consider products such as https://github.com/nicksnyde
 ## Status
 
 This library has been in reliable production use for some time. Versioning follows the well-known semantic version pattern.
-ag
