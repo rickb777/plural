@@ -26,6 +26,7 @@ func TestPluralFormatIntEnglish(t *testing.T) {
 		{uint32(2), "2 things"},
 		{uint64(3), "3 things"},
 		{float32(2), "2 things"},
+		{float32(0), "nothing"},
 		{float32(0.1), "0.1 thing"},
 		{float32(2.1), "2.1 things"},
 		{float64(3), "3 things"},
