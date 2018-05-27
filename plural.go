@@ -108,3 +108,25 @@ func (plurals Plurals) FormatFloat(value float32) string {
 	p := plurals[len(plurals)-1]
 	return fmt.Sprintf(p.Format, value)
 }
+
+// Simple constructs a simple set of cases using small ordinals (0, 1, 2, 3 etc), which is a
+// common requirement. It is not possible to create a Plurals that is empty, which would be invalid.
+//
+// The 'first' string becomes Case{0, first}. The rest are appended similarly.
+// So Simple is a shorthand for
+//
+//   Plurals{Case{0, first}, Case{1, rest[0]}, Case{2, rest[1]}}
+//
+// (assuming that 'rest' is given a slice of two strings), which would also be valid but a little
+// more verbose.
+//
+// This function is less flexible than constructing Plurals directly, but covers many common
+// situations.
+func Simple(first string, rest ...string) Plurals {
+	p := make(Plurals, 0, len(rest)+1)
+	p = append(p, Case{0, first})
+	for i, c := range rest {
+		p = append(p, Case{i+1, c})
+	}
+	return p
+}
