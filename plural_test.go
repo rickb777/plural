@@ -58,7 +58,7 @@ func TestPluralFormatIntEnglish(t *testing.T) {
 }
 
 func TestSimplePlurals(t *testing.T) {
-	p012 := Simple("nothing", "%v thing", "%v things")
+	p012 := ByOrdinal("nothing", "%v thing", "%v things")
 
 	cases := []struct {
 		n      interface{}
@@ -152,14 +152,14 @@ func ExamplePlurals() {
 	// The last case will typically include a "%v" placeholder for the number.
 	// carPlurals and weightPlurals provide English formatted cases for some number of cars and their weight.
 	var carPlurals = Plurals{
-		Case{0, "no cars"},
-		Case{1, "%v car"},
-		Case{2, "%v cars"},
+		Case{0, "no cars weigh"},
+		Case{1, "%v car weighs"},
+		Case{2, "%v cars weigh"},
 	}
 	var weightPlurals = Plurals{
-		Case{0, "weigh nothing"},
-		Case{1, "weighs %g tonne"},
-		Case{2, "weigh %1.1f tonnes"},
+		Case{0, "nothing"},
+		Case{1, "%1.1f tonne"},
+		Case{2, "%1.1f tonnes"},
 	}
 
 	for d := 0; d < 4; d++ {
@@ -168,29 +168,29 @@ func ExamplePlurals() {
 		fmt.Printf("%s %s\n", s, w)
 	}
 
-	// See also the 'Simple' example.
 	// Output: no cars weigh nothing
 	// 1 car weighs 0.6 tonne
 	// 2 cars weigh 1.2 tonnes
 	// 3 cars weigh 1.8 tonnes
 }
 
-func ExampleSimple() {
-	// Simple(...) builds simple common kinds of plurals using small ordinals (0, 1, 2, 3 etc).
+func ExampleByOrdinal() {
+	// ByOrdinal(...) builds simple common kinds of plurals using small ordinals (0, 1, 2, 3 etc).
 	// Notice that the counting starts from zero.
-	var carPlurals = Simple("no cars", "%v car", "%v cars")
-	var weightPlurals = Simple("weigh nothing", "weighs %g tonne", "weigh %1.1f tonnes")
+	var carPlurals = ByOrdinal("no cars weigh", "%v car weighs", "%v cars weigh")
+
+	// Note %g, %f etc should be chosen appropriately; both are used here for illustration
+	var weightPlurals = ByOrdinal("nothing", "%g tonne", "%1.1f tonnes")
 
 	for d := 0; d < 5; d++ {
 		s, _ := carPlurals.Format(d)
-		w, _ := weightPlurals.Format(float32(d) * 0.6)
+		w, _ := weightPlurals.Format(float32(d) * 0.5)
 		fmt.Printf("%s %s\n", s, w)
 	}
 
-	// See also the other, more general, example.
 	// Output: no cars weigh nothing
-	// 1 car weighs 0.6 tonne
-	// 2 cars weigh 1.2 tonnes
-	// 3 cars weigh 1.8 tonnes
-	// 4 cars weigh 2.4 tonnes
+	// 1 car weighs 0.5 tonne
+	// 2 cars weigh 1 tonne
+	// 3 cars weigh 1.5 tonnes
+	// 4 cars weigh 2.0 tonnes
 }
