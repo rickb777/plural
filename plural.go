@@ -76,6 +76,8 @@ func (plurals Plurals) Format(value interface{}) (string, error) {
 	case *float64:
 		return plurals.FormatFloat(float32(*x)), nil
 
+	case nil:
+		return "", fmt.Errorf("Unexpected nil value for %s", plurals)
 	default:
 		return "", fmt.Errorf("Unexpected type %T for %v", x, value)
 	}
@@ -83,31 +85,59 @@ func (plurals Plurals) Format(value interface{}) (string, error) {
 
 // FormatInt expresses an int in plural form. It panics if 'plurals' is empty.
 func (plurals Plurals) FormatInt(value int) string {
-	for _, p := range plurals {
-		if value == p.Number {
-			if strings.IndexByte(p.Format, '%') < 0 {
-				return p.Format
-			}
-			return fmt.Sprintf(p.Format, value)
+	for _, c := range plurals {
+		if value == c.Number {
+			return c.FormatInt(value)
 		}
 	}
-	p := plurals[len(plurals)-1]
-	return fmt.Sprintf(p.Format, value)
+	c := plurals[len(plurals)-1]
+	return c.FormatInt(value)
 }
 
 // FormatFloat expresses a float32 in plural form. It panics if 'plurals' is empty.
 func (plurals Plurals) FormatFloat(value float32) string {
-	for _, p := range plurals {
-		if value <= float32(p.Number) {
-			if strings.IndexByte(p.Format, '%') < 0 {
-				return p.Format
-			}
-			return fmt.Sprintf(p.Format, value)
+	for _, c := range plurals {
+		if value <= float32(c.Number) {
+			return c.FormatFloat(value)
 		}
 	}
-	p := plurals[len(plurals)-1]
-	return fmt.Sprintf(p.Format, value)
+	c := plurals[len(plurals)-1]
+	return c.FormatFloat(value)
 }
+
+// FormatInt renders a specific case with a given value.
+func (c Case) FormatInt(value int) string {
+	if strings.IndexByte(c.Format, '%') < 0 {
+		return c.Format
+	}
+	return fmt.Sprintf(c.Format, value)
+}
+
+// FormatFloat renders a specific case with a given value.
+func (c Case) FormatFloat(value float32) string {
+	if strings.IndexByte(c.Format, '%') < 0 {
+		return c.Format
+	}
+	return fmt.Sprintf(c.Format, value)
+}
+
+//-------------------------------------------------------------------------------------------------
+
+// String implements io.Stringer.
+func (plurals Plurals) String() string {
+	ss := make([]string, 0, len(plurals))
+	for _, c := range plurals {
+		ss = append(ss, c.String())
+	}
+	return fmt.Sprintf("Plurals(%s)", strings.Join(ss, ", "))
+}
+
+// String implements io.Stringer.
+func (c Case) String() string {
+	return fmt.Sprintf("{%v -> %q}", c.Number, c.Format)
+}
+
+//-------------------------------------------------------------------------------------------------
 
 // ByOrdinal constructs a simple set of cases using small ordinals (0, 1, 2, 3 etc), which is a
 // common requirement. It prevents creation of a Plurals list that is empty, which would be invalid.

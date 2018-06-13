@@ -80,6 +80,30 @@ func TestSimplePlurals(t *testing.T) {
 	}
 }
 
+func TestWithoutPlaceholders(t *testing.T) {
+	plurals := ByOrdinal("nothing", "one", "some", "many")
+
+	cases := []struct {
+		n      interface{}
+		expect string
+	}{
+		{0, "nothing"},
+		{1, "one"},
+		{2, "some"},
+		{3, "many"},
+		{400, "many"},
+		{4.1, "many"},
+	}
+	for _, c := range cases {
+		s, err := plurals.Format(c.n)
+		if err != nil {
+			t.Errorf("Format(%d) => %v, want %s", c.n, err, c.expect)
+		} else if s != c.expect {
+			t.Errorf("Format(%d) == %s, want %s", c.n, s, c.expect)
+		}
+	}
+}
+
 func TestErrorCase(t *testing.T) {
 	plurals := Plurals{Case{0, "nothing"}, Case{1, "%v thing"}, Case{2, "%v things"}}
 
@@ -88,6 +112,7 @@ func TestErrorCase(t *testing.T) {
 		expect string
 	}{
 		{"foo", "Unexpected type string for foo"},
+		{nil, `Unexpected nil value for Plurals({0 -> "nothing"}, {1 -> "%v thing"}, {2 -> "%v things"})`},
 	}
 	for _, c := range cases {
 		_, err := plurals.Format(c.n)
