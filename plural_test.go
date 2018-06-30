@@ -57,8 +57,8 @@ func TestPluralFormatIntEnglish(t *testing.T) {
 	}
 }
 
-func TestSimplePlurals(t *testing.T) {
-	p012 := ByOrdinal("nothing", "%v thing", "%v things")
+func TestByOrdinalFromZero(t *testing.T) {
+	p012 := ByOrdinal("nothing", "%d thing", "%d things")
 
 	cases := []struct {
 		n      interface{}
@@ -67,6 +67,29 @@ func TestSimplePlurals(t *testing.T) {
 		{0, "nothing"},
 		{1, "1 thing"},
 		{2, "2 things"},
+		{3, "3 things"},
+		{400, "400 things"},
+	}
+	for _, c := range cases {
+		s, err := p012.Format(c.n)
+		if err != nil {
+			t.Errorf("Format(%d) => %v, want %s", c.n, err, c.expect)
+		} else if s != c.expect {
+			t.Errorf("Format(%d) == %s, want %s", c.n, s, c.expect)
+		}
+	}
+}
+
+func TestFromOne(t *testing.T) {
+	p012 := FromOne("one thing", "two things", "%d things")
+
+	cases := []struct {
+		n      interface{}
+		expect string
+	}{
+		{0, "0 things"},
+		{1, "one thing"},
+		{2, "two things"},
 		{3, "3 things"},
 		{400, "400 things"},
 	}
