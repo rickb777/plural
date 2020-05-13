@@ -1,6 +1,6 @@
 #!/bin/bash -e
 cd $(dirname $0)
-PATH=$HOME/gopath/bin:$GOPATH/bin:$PATH
+PATH=$HOME/go/bin:$GOPATH/bin:$PATH
 
 if ! type -p goveralls; then
   echo go get github.com/mattn/goveralls
