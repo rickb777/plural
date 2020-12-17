@@ -1,10 +1,12 @@
 #!/bin/bash -e
-cd $(dirname $0)
-PATH=$HOME/gopath/bin:$GOPATH/bin:$PATH
+cd "$(dirname $0)"
+PATH=$HOME/go/bin:$PATH
+unset GOPATH
+export GO111MODULE=on
 
 if ! type -p goveralls; then
-  echo go get github.com/mattn/goveralls
-  go get github.com/mattn/goveralls
+  echo go install github.com/mattn/goveralls
+  go getinstallgithub.com/mattn/goveralls
 fi
 
 echo date...
