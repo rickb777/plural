@@ -1,3 +1,3 @@
 module github.com/rickb777/plural
 
-go 1.16
+go 1.17
