@@ -2,6 +2,6 @@ module github.com/rickb777/plural
 
 go 1.25.0
 
-require github.com/magefile/mage v1.16.0
+require github.com/magefile/mage v1.17.1
 
 tool github.com/magefile/mage
