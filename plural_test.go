@@ -1,67 +1,68 @@
-package plural
+package plural_test
 
 import (
 	"fmt"
 	"testing"
+
+	"github.com/rickb777/plural/v2"
 )
 
-func TestPluralFormatIntEnglish(t *testing.T) {
-	p012 := Plurals{Case{0, "nothing"}, Case{1, "%v thing"}, Case{2, "%v things"}}
+func TestPluralFormatFloatEnglish(t *testing.T) {
+	p012 := plural.ByOrdinal("nothing", "%v thing", "%v things")
 
 	cases := []struct {
-		n      interface{}
+		n      float64
 		expect string
 	}{
 		{0, "nothing"},
+		{0.5, "0.5 thing"},
 		{1, "1 thing"},
 		{2, "2 things"},
 		{3, "3 things"},
 		{400, "400 things"},
-		{int8(0), "nothing"},
-		{int16(1), "1 thing"},
-		{int32(2), "2 things"},
-		{int64(3), "3 things"},
-		{uint8(0), "nothing"},
-		{uint16(1), "1 thing"},
-		{uint32(2), "2 things"},
-		{uint64(3), "3 things"},
-		{float32(2), "2 things"},
-		{float32(0), "nothing"},
-		{float32(0.1), "0.1 thing"},
-		{float32(2.1), "2.1 things"},
-		{float64(3), "3 things"},
-		{float64(3.00001), "3.00001 things"},
-		{fp32(3), "3 things"},
-		{fp64(3), "3 things"},
-		{ip(0), "nothing"},
-		{ip(1), "1 thing"},
-		{ip(2), "2 things"},
-		{ip(3), "3 things"},
-		{ip8(3), "3 things"},
-		{ip16(3), "3 things"},
-		{ip32(3), "3 things"},
-		{ip64(3), "3 things"},
-		{uip(3), "3 things"},
-		{uip8(3), "3 things"},
-		{uip16(3), "3 things"},
-		{uip32(3), "3 things"},
-		{uip64(3), "3 things"},
+		{0, "nothing"},
+		{1, "1 thing"},
+		{2, "2 things"},
+		{3, "3 things"},
+		{0, "nothing"},
+		{1, "1 thing"},
+		{2, "2 things"},
+		{3, "3 things"},
+		{2, "2 things"},
+		{0, "nothing"},
+		{0.1, "0.1 thing"},
+		{2.1, "2.1 things"},
+		{3, "3 things"},
+		{3.00001, "3.00001 things"},
 	}
-	for _, c := range cases {
-		s, err := p012.Format(c.n)
-		if err != nil {
-			t.Errorf("Format(%d) => %v, want %s", c.n, err, c.expect)
-		} else if s != c.expect {
-			t.Errorf("Format(%d) == %s, want %s", c.n, s, c.expect)
+	for i, c := range cases {
+		s := p012.Continuous(c.n)
+		if s != c.expect {
+			t.Errorf("#%d Format(%g) == %q, want %s", i, c.n, s, c.expect)
+		}
+	}
+}
+
+func TestPluralLengths(t *testing.T) {
+	cases := []plural.Cases{
+		plural.FromZero("nothing"),
+		plural.FromZero("nothing", "one thing"),
+		plural.FromZero("nothing", "one thing", "%d things"),
+		plural.FromZero("nothing", "one thing", "two things", "%d things"),
+	}
+	for i, c := range cases {
+		s := c.Countable(0)
+		if s != "nothing" {
+			t.Errorf("#%d Format(0) == %q, want nothing", i, s)
 		}
 	}
 }
 
 func TestByOrdinalFromZero(t *testing.T) {
-	p012 := ByOrdinal("nothing", "%d thing", "%d things")
+	p012 := plural.ByOrdinal("nothing", "%d thing", "%d things")
 
 	cases := []struct {
-		n      interface{}
+		n      int
 		expect string
 	}{
 		{0, "nothing"},
@@ -71,43 +72,39 @@ func TestByOrdinalFromZero(t *testing.T) {
 		{400, "400 things"},
 	}
 	for _, c := range cases {
-		s, err := p012.Format(c.n)
-		if err != nil {
-			t.Errorf("Format(%d) => %v, want %s", c.n, err, c.expect)
-		} else if s != c.expect {
+		s := p012.Countable(c.n)
+		if s != c.expect {
 			t.Errorf("Format(%d) == %s, want %s", c.n, s, c.expect)
 		}
 	}
 }
 
 func TestFromOne(t *testing.T) {
-	p012 := FromOne("one thing", "two things", "%d things")
+	p012 := plural.FromOne("one thing", "two things", "%d things")
 
 	cases := []struct {
-		n      interface{}
+		n      int
 		expect string
 	}{
-		{0, "0 things"},
+		{0, ""},
 		{1, "one thing"},
 		{2, "two things"},
 		{3, "3 things"},
 		{400, "400 things"},
 	}
 	for _, c := range cases {
-		s, err := p012.Format(c.n)
-		if err != nil {
-			t.Errorf("Format(%d) => %v, want %s", c.n, err, c.expect)
-		} else if s != c.expect {
+		s := p012.Countable(c.n)
+		if s != c.expect {
 			t.Errorf("Format(%d) == %s, want %s", c.n, s, c.expect)
 		}
 	}
 }
 
 func TestWithoutPlaceholders(t *testing.T) {
-	plurals := ByOrdinal("nothing", "one", "some", "many")
+	plurals := plural.ByOrdinal("nothing", "one", "some", "many")
 
 	cases := []struct {
-		n      interface{}
+		n      float64
 		expect string
 	}{
 		{0, "nothing"},
@@ -118,127 +115,100 @@ func TestWithoutPlaceholders(t *testing.T) {
 		{4.1, "many"},
 	}
 	for _, c := range cases {
-		s, err := plurals.Format(c.n)
-		if err != nil {
-			t.Errorf("Format(%d) => %v, want %s", c.n, err, c.expect)
-		} else if s != c.expect {
-			t.Errorf("Format(%d) == %s, want %s", c.n, s, c.expect)
+		s := plurals.Continuous(c.n)
+		if s != c.expect {
+			t.Errorf("Format(%g) == %s, want %s", c.n, s, c.expect)
 		}
 	}
 }
 
-func TestErrorCase(t *testing.T) {
-	plurals := Plurals{Case{0, "nothing"}, Case{1, "%v thing"}, Case{2, "%v things"}}
+func ExampleRegular() {
+	// Regular caters for the common simple case of a noun that is easy to pluralise, e.g. by appending "s".
+	// It uses the Zero and AddS functions, which can be altered if required.
 
-	cases := []struct {
-		n      interface{}
-		expect string
-	}{
-		{"foo", "Unexpected type string for foo"},
-		{nil, `Unexpected nil value for Plurals({0 -> "nothing"}, {1 -> "%v thing"}, {2 -> "%v things"})`},
-	}
-	for _, c := range cases {
-		_, err := plurals.Format(c.n)
-		if err == nil {
-			t.Errorf("Format(%#v) no error, want %s", c.n, c.expect)
-		} else if err.Error() != c.expect {
-			t.Errorf("Format(%v) == %s, want %s", c.n, err.Error(), c.expect)
-		}
-	}
-}
-
-func ip(v int) *int {
-	return &v
-}
-
-func ip8(v int8) *int8 {
-	return &v
-}
-
-func ip16(v int16) *int16 {
-	return &v
-}
-
-func ip32(v int32) *int32 {
-	return &v
-}
-
-func ip64(v int64) *int64 {
-	return &v
-}
-
-func uip(v uint) *uint {
-	return &v
-}
-
-func uip8(v uint8) *uint8 {
-	return &v
-}
-
-func uip16(v uint16) *uint16 {
-	return &v
-}
-
-func uip32(v uint32) *uint32 {
-	return &v
-}
-
-func uip64(v uint64) *uint64 {
-	return &v
-}
-
-func fp32(v float32) *float32 {
-	return &v
-}
-
-func fp64(v float64) *float64 {
-	return &v
-}
-
-func ExamplePlurals() {
-	// Plurals{} holds a sequence of cardinal cases where the first match is used, otherwise the last one is used.
-	// The last case will typically include a "%v" placeholder for the number.
-	// carPlurals and weightPlurals provide English formatted cases for some number of cars and their weight.
-	var carPlurals = Plurals{
-		Case{0, "no cars weigh"},
-		Case{1, "%v car weighs"},
-		Case{2, "%v cars weigh"},
-	}
-	var weightPlurals = Plurals{
-		Case{0, "nothing"},
-		Case{1, "%1.1f tonne"},
-		Case{2, "%1.1f tonnes"},
-	}
+	var catPlurals = plural.Regular("cat")
 
 	for d := 0; d < 4; d++ {
-		s, _ := carPlurals.Format(d)
-		w, _ := weightPlurals.Format(float32(d) * 0.6)
-		fmt.Printf("%s %s\n", s, w)
+		s := catPlurals.Countable(d)
+		fmt.Println(s)
 	}
 
-	// Output: no cars weigh nothing
-	// 1 car weighs 0.6 tonne
-	// 2 cars weigh 1.2 tonnes
-	// 3 cars weigh 1.8 tonnes
+	// Output: no cats
+	// 1 cat
+	// 2 cats
+	// 3 cats
 }
 
 func ExampleByOrdinal() {
-	// ByOrdinal(...) builds simple common kinds of plurals using small ordinals (0, 1, 2, 3 etc).
-	// Notice that the counting starts from zero.
-	var carPlurals = ByOrdinal("no cars weigh", "%v car weighs", "%v cars weigh")
+	// ByOrdinal is easy to use for any collection of counting phrases, even with nouns that have irregular
+	// plurals. In this case, "lolly" and "lollies" are used.
+	//
+	// ByOrdinal creates Cases that hold a sequence of cardinal cases where the
+	// first matching case is used, otherwise if there's no match, the last one is used.
 
-	// Note %g, %f etc should be chosen appropriately; both are used here for illustration
-	var weightPlurals = ByOrdinal("nothing", "%g tonne", "%1.1f tonnes")
+	var lollyPlurals = plural.ByOrdinal("no ice lollies", "1 ice lolly", "%d ice lollies")
 
-	for d := 0; d < 5; d++ {
-		s, _ := carPlurals.Format(d)
-		w, _ := weightPlurals.Format(float32(d) * 0.5)
-		fmt.Printf("%s %s\n", s, w)
+	for d := 0; d < 4; d++ {
+		s := lollyPlurals.Countable(d)
+		fmt.Println(s)
 	}
 
-	// Output: no cars weigh nothing
-	// 1 car weighs 0.5 tonne
-	// 2 cars weigh 1 tonne
-	// 3 cars weigh 1.5 tonnes
-	// 4 cars weigh 2.0 tonnes
+	// Output: no ice lollies
+	// 1 ice lolly
+	// 2 ice lollies
+	// 3 ice lollies
+}
+
+func ExampleFromZero() {
+	// FromZero creates Cases that hold a sequence of cardinal cases where the
+	// first matching case is used, otherwise if there's no match, the last one is used.
+	//
+	// Often, the last case will include a "%d", "%g" or "%v" placeholder for the number,
+	// but placeholders are not mandatory in any of the cases.
+	//
+	// ByOrdinal could be used instead of FromZero (they are aliases);
+	// it builds simple common kinds of plurals using small ordinals (0, 1, 2, 3 etc).
+
+	// bikePlurals and weightPlurals provide English formatted cases for some number of bikes and their weight.
+	var bikePlurals = plural.FromZero("no bikes weigh", "%d bike weighs", "%d bikes weigh")
+
+	var weightPlurals = plural.FromZero("nothing", "%1.1f tonne", "%1.1f tonnes")
+
+	for d := 0; d < 5; d++ {
+		s := bikePlurals.Countable(d)
+		w := weightPlurals.Continuous(float64(d) * 0.5)
+		fmt.Println(s, w)
+	}
+
+	// Output: no bikes weigh nothing
+	// 1 bike weighs 0.5 tonne
+	// 2 bikes weigh 1.0 tonne
+	// 3 bikes weigh 1.5 tonnes
+	// 4 bikes weigh 2.0 tonnes
+}
+
+func ExampleFromOne() {
+	// FromOne creates Cases that hold a sequence of cardinal cases where the
+	// first matching case is used, otherwise if there's no match, the last one is used.
+	//
+	// Often, the last case will include a "%d", "%g" or "%v" placeholder for the number,
+	// but placeholders are not mandatory in any of the cases.
+
+	// mugPlurals and volumePlurals provide English formatted cases for some number of mugs and their volume.
+	var mugPlurals = plural.FromOne("%d mug holds", "%d mugs hold")
+
+	// Note %g, %f etc should be chosen appropriately
+	var volumePlurals = plural.FromOne("%g litre", "%g litres")
+
+	for d := 1; d < 6; d++ {
+		s := mugPlurals.Countable(d)
+		w := volumePlurals.Continuous(float64(d) * 0.25)
+		fmt.Println(s, w)
+	}
+
+	// Output: 1 mug holds 0.25 litre
+	// 2 mugs hold 0.5 litre
+	// 3 mugs hold 0.75 litre
+	// 4 mugs hold 1 litre
+	// 5 mugs hold 1.25 litres
 }

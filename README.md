@@ -19,7 +19,7 @@ For example, `2 cars` might weigh `1.6 tonnes`; both categories are covered.
 ## Installation
 
 ```
-    go get github.com/rickb777/plural
+    go get github.com/rickb777/plural/v2
 ```
 
 ## Status

@@ -5,199 +5,164 @@ import (
 	"strings"
 )
 
-// Case is the inner element of this API and describes one case. When the number to be described
-// matches the number here, the corresponding format string will be used. If the format string
-// includes '%', then fmt.Sprintf will be used. Otherwise the format string will be returned verbatim.
-type Case struct {
-	Number int
-	Format string
+// Cases provides a list of plural cases in the order they will be searched.
+// The cases must be listed in ascending number order.
+// They are continuous (i.e. without gaps) and monotonic (i.e. always rising in ordinal).
+type Cases struct {
+	indices []int
+	labels  string
 }
 
-// Plurals provides a list of plural cases in the order they will be searched.
-// For plurals of continuous ranges (e.g. weight), the cases must be in ascending number order.
-// For plurals of discrete ranges (i.e. integers), the cases can be in any order you require,
-// but will conventionally be in ascending number order.
-// If no match is found, the last case will be used.
-type Plurals []Case
+// Zero is a pluggable function that prepends "no " and appends "s" to a noun.
+// This is used by [Regular].
+// Replace this with whatever your own language needs.
+var Zero = func(noun string) string { return "no " + noun + "s" }
 
-// Format searches through the plural cases for the first match. If none is found, the last
-// case is used. The value passed in can be any number type, or pointer to a number type, except
-// complex numbers are not supported. The value will be converted to an int in order to
-// find the first case that matches.
-// The only possible error arises if value has a type that is not numeric.
-// It panics if 'plurals' is empty.
-func (plurals Plurals) Format(value interface{}) (string, error) {
-	switch x := value.(type) {
-	case int:
-		return plurals.FormatInt(x), nil
-	case int8:
-		return plurals.FormatInt(int(x)), nil
-	case int16:
-		return plurals.FormatInt(int(x)), nil
-	case int32:
-		return plurals.FormatInt(int(x)), nil
-	case int64:
-		return plurals.FormatInt(int(x)), nil
-	case uint8:
-		return plurals.FormatInt(int(x)), nil
-	case uint16:
-		return plurals.FormatInt(int(x)), nil
-	case uint32:
-		return plurals.FormatInt(int(x)), nil
-	case uint64:
-		return plurals.FormatInt(int(x)), nil
-	case float32:
-		return plurals.FormatFloat(x), nil
-	case float64:
-		return plurals.FormatFloat(float32(x)), nil
+// AddS is a pluggable function that appends "s" to a noun. This is used by [Regular].
+// Replace this with whatever your own language needs.
+var AddS = func(noun string) string { return noun + "s" }
 
-	case *int:
-		return plurals.FormatInt(*x), nil
-	case *int8:
-		return plurals.FormatInt(int(*x)), nil
-	case *int16:
-		return plurals.FormatInt(int(*x)), nil
-	case *int32:
-		return plurals.FormatInt(int(*x)), nil
-	case *int64:
-		return plurals.FormatInt(int(*x)), nil
-	case *uint:
-		return plurals.FormatInt(int(*x)), nil
-	case *uint8:
-		return plurals.FormatInt(int(*x)), nil
-	case *uint16:
-		return plurals.FormatInt(int(*x)), nil
-	case *uint32:
-		return plurals.FormatInt(int(*x)), nil
-	case *uint64:
-		return plurals.FormatInt(int(*x)), nil
-	case *float32:
-		return plurals.FormatFloat(*x), nil
-	case *float64:
-		return plurals.FormatFloat(float32(*x)), nil
-
-	case nil:
-		return "", fmt.Errorf("Unexpected nil value for %s", plurals)
-	default:
-		return "", fmt.Errorf("Unexpected type %T for %v", x, value)
-	}
+// Regular returns plurals for regular nouns typical in English such as words like "cat", "tree",
+// for which the plural form is simply by adding letter 's'.
+//
+// It uses [FromZero], passing the noun with [Zero] for the zero case, the noun itself for the unit case,
+// and with [AddS] for all counts above one. This allows the many easy regular nouns to be pluralised
+// with little effort.
+//
+// For example
+//
+//	plural.Regular("thing")
+//
+// can then be used via [Cases.Countable] or [Cases.Continuous] to produce descriptive formatted
+// values.
+//
+// Irregular nouns such as "caddy" should not use this function (unless "caddys" really is the plural
+// form you want). Instead, use [FromZero] or [FromOne].
+//
+// Also, Regular is too simplistic for phrases instead of nouns; for these, [FromZero] or [FromOne]
+// will be more appropriate.
+func Regular(noun string) Cases {
+	return FromZero(Zero(noun), "%v "+noun, "%v "+AddS(noun))
 }
 
-// FormatInt expresses an int in plural form. It panics if 'plurals' is empty.
-func (plurals Plurals) FormatInt(value int) string {
-	for _, c := range plurals {
-		if value == c.Number {
-			return c.FormatInt(value)
-		}
-	}
-	c := plurals[len(plurals)-1]
-	return c.FormatInt(value)
-}
-
-// FormatFloat expresses a float32 in plural form. It panics if 'plurals' is empty.
-func (plurals Plurals) FormatFloat(value float32) string {
-	for _, c := range plurals {
-		if value <= float32(c.Number) {
-			return c.FormatFloat(value)
-		}
-	}
-	c := plurals[len(plurals)-1]
-	return c.FormatFloat(value)
-}
-
-// FormatInt renders a specific case with a given value.
-func (c Case) FormatInt(value int) string {
-	if strings.IndexByte(c.Format, '%') < 0 {
-		return c.Format
-	}
-	return fmt.Sprintf(c.Format, value)
-}
-
-// FormatFloat renders a specific case with a given value.
-func (c Case) FormatFloat(value float32) string {
-	if strings.IndexByte(c.Format, '%') < 0 {
-		return c.Format
-	}
-	return fmt.Sprintf(c.Format, value)
-}
-
-//-------------------------------------------------------------------------------------------------
-
-// String implements io.Stringer.
-func (plurals Plurals) String() string {
-	ss := make([]string, 0, len(plurals))
-	for _, c := range plurals {
-		ss = append(ss, c.String())
-	}
-	return fmt.Sprintf("Plurals(%s)", strings.Join(ss, ", "))
-}
-
-// String implements io.Stringer.
-func (c Case) String() string {
-	return fmt.Sprintf("{%v -> %q}", c.Number, c.Format)
-}
-
-//-------------------------------------------------------------------------------------------------
-
-// ByOrdinal constructs a simple set of cases using small ordinals (0, 1, 2, 3 etc), which is a
-// common requirement. It is an alias for FromZero.
-func ByOrdinal(zeroth string, rest ...string) Plurals {
+// ByOrdinal is an alias for FromZero.
+func ByOrdinal(zeroth string, rest ...string) Cases {
 	return FromZero(zeroth, rest...)
 }
 
 // FromZero constructs a simple set of cases using small ordinals (0, 1, 2, 3 etc), which is a
-// common requirement. It prevents creation of a Plurals list that is empty, which would be invalid.
+// common requirement. The last case will be used for all subsequent numbers. Any cases may
+// include a fmt.Sprintf number placeholder, Usually, this will be %v, which will support the countable
+// and continuous cases effectively.
 //
-// The 'zeroth' string becomes Case{0, first}. The rest are appended similarly. Notice that the
-// counting starts from zero.
+// For example
 //
-// So
+//	plural.FromZero("nothing", "%v caddy", "%v caddies")
+//	plural.FromZero("none", "one", "two", "many")
 //
-//	FromZero("nothing", "%v thing", "%v things")
-//
-// is simply a shorthand for
-//
-//	Plurals{Case{0, "nothing"}, Case{1, "%v thing"}, Case{2, "%v things"}}
-//
-// which would also be valid but a little more verbose.
-//
-// This helper function is less flexible than constructing Plurals directly, but covers many common
-// situations.
-func FromZero(zeroth string, rest ...string) Plurals {
-	p := make(Plurals, 0, len(rest)+1)
-	p = append(p, Case{0, zeroth})
-	for i, c := range rest {
-		p = append(p, Case{i + 1, c})
-	}
-	return p
+// can then be used via [Cases.Countable] or [Cases.Continuous] to produce descriptive formatted
+// values.
+func FromZero(zeroth string, rest ...string) Cases {
+	return newPlurals(false, zeroth, rest...)
 }
 
 // FromOne constructs a simple set of cases using small positive numbers (1, 2, 3 etc), which is a
-// common requirement. It prevents creation of a Plurals list that is empty, which would be invalid.
+// common requirement. The last case will be used for all subsequent numbers. Any cases may
+// include a fmt.Sprintf number placeholder, Usually, this will be %v, which will support the countable
+// and continuous cases effectively.
 //
-// The 'first' string becomes Case{1, first}. The rest are appended similarly. Notice that the
-// counting starts from one.
+// For example
 //
-// So
+//	plural.FromOne("%v cat", "%v cats")
+//	plural.FromOne("one", "two", "many")
 //
-//	FromOne("%v thing", "%v things")
+// can then be used via [Cases.Countable] or [Cases.Continuous] to produce descriptive formatted
+// values.
 //
-// is simply a shorthand for
-//
-//	Plurals{Case{1, "%v thing"}, Case{2, "%v things"}}
-//
-// which would also be valid but a little more verbose.
-//
-// Note the behaviour of formatting when the count is zero. As a consequence of Format evaluating
-// the cases in order, FromOne(...).FormatInt(0) will pick the last case you provide, not the first.
-//
-// This helper function is less flexible than constructing Plurals directly, but covers many common
-// situations.
-func FromOne(first string, rest ...string) Plurals {
-	p := make(Plurals, 0, len(rest)+1)
-	p = append(p, Case{1, first})
-	for i, c := range rest {
-		p = append(p, Case{i + 2, c})
+// Note the behaviour of formatting when the count is zero. As a consequence of [Cases.Countable]
+// evaluating its cases in ascending order, FromOne(...).Countable(0) will return a blank string.
+// If this might arise, use [FromZero] instead.
+func FromOne(first string, rest ...string) Cases {
+	return newPlurals(true, first, rest...)
+}
+
+func newPlurals(addZero bool, first string, rest ...string) Cases {
+	p := Cases{
+		indices: make([]int, 0, len(rest)),
 	}
+	var buf strings.Builder
+	buf.WriteString(first)
+	i := len(first)
+	if addZero {
+		p.indices = append(p.indices, 0)
+	}
+	p.indices = append(p.indices, i)
+
+	switch len(rest) {
+	case 0:
+	case 1:
+		buf.WriteString(rest[0])
+	default:
+		for _, c := range rest[:len(rest)-1] {
+			i += len(c)
+			p.indices = append(p.indices, i)
+			buf.WriteString(c)
+		}
+		buf.WriteString(rest[len(rest)-1])
+	}
+
+	p.labels = buf.String()
 	return p
+}
+
+//-------------------------------------------------------------------------------------------------
+
+// Countable expresses a countable number in plural form.
+// If no match is found, the last case will be used.
+func (plurals Cases) Countable(value int) string {
+	prev := 0
+
+	for i, c := range plurals.indices {
+		if value <= i {
+			message := plurals.labels[prev:c]
+			return render(message, value)
+		}
+		prev = c
+	}
+
+	prev = plurals.indices[len(plurals.indices)-1]
+	message := plurals.labels[prev:]
+	return render(message, value)
+}
+
+//-------------------------------------------------------------------------------------------------
+
+// Continuous expresses a continuous number in plural form.
+// If no match is found, the last case will be used.
+// If the case placeholders contain "%d", this will be replaced by "%g" for floating point formatting.
+func (plurals Cases) Continuous(value float64) string {
+	prev := 0
+
+	for i, c := range plurals.indices {
+		if value <= float64(i) {
+			message := plurals.labels[prev:c]
+			return render(message, value)
+		}
+		prev = c
+	}
+
+	prev = plurals.indices[len(plurals.indices)-1]
+	message := plurals.labels[prev:]
+	message = strings.ReplaceAll(message, "%d", "%g")
+	return render(message, value)
+}
+
+//-------------------------------------------------------------------------------------------------
+
+// render renders a specific case with a given value.
+func render[N int | float64](format string, value N) string {
+	if strings.IndexByte(format, '%') < 0 {
+		return format
+	}
+	return fmt.Sprintf(format, value)
 }
