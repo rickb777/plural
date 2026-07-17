@@ -7,7 +7,7 @@ import (
 
 // Cases provides a list of plural cases in the order they will be searched.
 // The cases must be listed in ascending number order.
-// They are contiguous (i.e. without gaps) and monotonic (i.e. always rising in ordinal).
+// They are contiguous (i.e. without gaps) and monotonic (i.e. always rising).
 type Cases struct {
 	indices []int
 	labels  string
@@ -37,9 +37,9 @@ var AddS = func(noun string) string { return noun + "s" }
 // values.
 //
 // Irregular nouns such as "caddy" should not use this function (unless "caddys" really is the plural
-// form you want). Instead, use [FromZero] or [FromOne].
+// form you want). Instead, use [Irregular], [FromZero] or [FromOne].
 //
-// Also, Regular is too simplistic for phrases instead of nouns; for these, [FromZero] or [FromOne]
+// Also, [Regular] is too simplistic for phrases instead of nouns; for these, [FromZero] or [FromOne]
 // will be more appropriate.
 func Regular(noun string) Cases {
 	return FromZero(Zero(noun), "%v "+noun, "%v "+AddS(noun))
@@ -52,8 +52,8 @@ func ByOrdinal(zeroth string, rest ...string) Cases {
 
 // FromZero constructs a simple set of cases using small ordinals (0, 1, 2, 3 etc), which is a
 // common requirement. The last case will be used for all subsequent numbers. Any cases may
-// include a fmt.Sprintf number placeholder, Usually, this will be %v, which will support the countable
-// and continuous cases effectively.
+// include a fmt.Sprintf number placeholder, Usually, this will be %v, which will support the
+// countable and continuous cases effectively.
 //
 // For example
 //
@@ -63,13 +63,37 @@ func ByOrdinal(zeroth string, rest ...string) Cases {
 // can then be used via [Cases.Countable] or [Cases.Continuous] to produce descriptive formatted
 // values.
 func FromZero(zeroth string, rest ...string) Cases {
-	return newPlurals(false, zeroth, rest...)
+	return newCases(false, zeroth, rest...)
+}
+
+//-------------------------------------------------------------------------------------------------
+
+// Irregular returns plurals for irregular nouns typical in English such as words like "caddy" ("caddies"),
+// for which noun has a singular and a plural form but the plural form is irregular.
+//
+// It uses [FromOne], passing the singular noun for the unit case, and the plural noun for all counts
+// above one. This allows irregular nouns to be pluralised with little effort.
+//
+// For example
+//
+//	plural.Irregular("caddy", "caddies")
+//
+// can then be used via [Cases.Countable] or [Cases.Continuous] to produce descriptive formatted
+// values.
+//
+// Like Regular, Irregular is too simplistic for phrases instead of nouns and for any language that
+// uses more than two variants; for these, [FromZero] or [FromOne] will be more appropriate.
+//
+// Both Irregular(s, p).Countable(0) and FromOne(...).Countable(0) will return a blank string for
+// zero. If this might arise, use [FromZero] instead.
+func Irregular(singular, plural string) Cases {
+	return FromOne("%v "+singular, "%v "+plural)
 }
 
 // FromOne constructs a simple set of cases using small positive numbers (1, 2, 3 etc), which is a
 // common requirement. The last case will be used for all subsequent numbers. Any cases may
-// include a fmt.Sprintf number placeholder, Usually, this will be %v, which will support the countable
-// and continuous cases effectively.
+// include a fmt.Sprintf number placeholder, Usually, this will be %v, which will support the
+// countable and continuous cases effectively.
 //
 // For example
 //
@@ -83,10 +107,12 @@ func FromZero(zeroth string, rest ...string) Cases {
 // evaluating its cases in ascending order, FromOne(...).Countable(0) will return a blank string.
 // If this might arise, use [FromZero] instead.
 func FromOne(first string, rest ...string) Cases {
-	return newPlurals(true, first, rest...)
+	return newCases(true, first, rest...)
 }
 
-func newPlurals(addZero bool, first string, rest ...string) Cases {
+//-------------------------------------------------------------------------------------------------
+
+func newCases(addZero bool, first string, rest ...string) Cases {
 	p := Cases{
 		indices: make([]int, 0, len(rest)),
 	}
@@ -117,8 +143,12 @@ func newPlurals(addZero bool, first string, rest ...string) Cases {
 
 //-------------------------------------------------------------------------------------------------
 
-// Countable expresses a countable number in plural form.
-// If no match is found, the last case will be used.
+// Countable expresses a countable number in plural form. If no match is found, the last
+// case will be used. It is recommended that any case placeholders should be the %v general
+// value, but integer placeholders such as %d may be used instead.
+//
+// Floating point placeholders such as %f or %g will render incorrectly and should not be used.
+// Negative values are not supported.
 func (plurals Cases) Countable(value int) string {
 	prev := 0
 
@@ -137,9 +167,12 @@ func (plurals Cases) Countable(value int) string {
 
 //-------------------------------------------------------------------------------------------------
 
-// Continuous expresses a continuous number in plural form.
-// If no match is found, the last case will be used.
-// If the case placeholders contain "%d", this will be replaced by "%g" for floating point formatting.
+// Continuous expresses a continuous number in plural form. If no match is found, the last
+// case will be used. It is recommended that any case placeholders should be the %v general
+// value, but floating point placeholders such as %f or %g may be used instead.
+//
+// Integer placeholders such as %d will render incorrectly and should not be used.
+// Negative values are not supported.
 func (plurals Cases) Continuous(value float64) string {
 	prev := 0
 
@@ -153,7 +186,6 @@ func (plurals Cases) Continuous(value float64) string {
 
 	prev = plurals.indices[len(plurals.indices)-1]
 	message := plurals.labels[prev:]
-	message = strings.ReplaceAll(message, "%d", "%g")
 	return render(message, value)
 }
 

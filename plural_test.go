@@ -80,7 +80,7 @@ func TestByOrdinalFromZero(t *testing.T) {
 }
 
 func TestFromOne(t *testing.T) {
-	p012 := plural.FromOne("one thing", "two things", "%d things")
+	p12x := plural.FromOne("one thing", "two things", "%d things")
 
 	cases := []struct {
 		n      int
@@ -93,7 +93,7 @@ func TestFromOne(t *testing.T) {
 		{400, "400 things"},
 	}
 	for _, c := range cases {
-		s := p012.Countable(c.n)
+		s := p12x.Countable(c.n)
 		if s != c.expect {
 			t.Errorf("Format(%d) == %s, want %s", c.n, s, c.expect)
 		}
@@ -139,14 +139,30 @@ func ExampleRegular() {
 	// 3 cats
 }
 
+func ExampleIrregular() {
+	// Irregular is similar to Regular, but differs by catering for the case of nouns that have different
+	// forms in the singular and in the plural.
+
+	var lollyPlurals = plural.Irregular("lolly", "lollies")
+
+	for d := 1; d < 4; d++ {
+		s := lollyPlurals.Countable(d)
+		fmt.Println(s)
+	}
+
+	// Output: 1 lolly
+	// 2 lollies
+	// 3 lollies
+}
+
 func ExampleByOrdinal() {
 	// ByOrdinal is easy to use for any collection of counting phrases, even with nouns that have irregular
 	// plurals. In this case, "lolly" and "lollies" are used.
 	//
 	// ByOrdinal creates Cases that hold a sequence of cardinal cases where the
-	// first matching case is used, otherwise if there's no match, the last one is used.
+	// first matching case is used. Otherwise, if there's no match, the last one is used.
 
-	var lollyPlurals = plural.ByOrdinal("no ice lollies", "1 ice lolly", "%d ice lollies")
+	var lollyPlurals = plural.ByOrdinal("no ice lollies", "1 ice lolly", "%v ice lollies")
 
 	for d := 0; d < 4; d++ {
 		s := lollyPlurals.Countable(d)
@@ -161,7 +177,7 @@ func ExampleByOrdinal() {
 
 func ExampleFromZero() {
 	// FromZero creates Cases that hold a sequence of cardinal cases where the
-	// first matching case is used, otherwise if there's no match, the last one is used.
+	// first matching case is used. Otherwise, if there's no match, the last one is used.
 	//
 	// Often, the last case will include a "%d", "%g" or "%v" placeholder for the number,
 	// but placeholders are not mandatory in any of the cases.
@@ -189,7 +205,7 @@ func ExampleFromZero() {
 
 func ExampleFromOne() {
 	// FromOne creates Cases that hold a sequence of cardinal cases where the
-	// first matching case is used, otherwise if there's no match, the last one is used.
+	// first matching case is used. Otherwise, if there's no match, the last one is used.
 	//
 	// Often, the last case will include a "%d", "%g" or "%v" placeholder for the number,
 	// but placeholders are not mandatory in any of the cases.
