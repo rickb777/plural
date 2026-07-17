@@ -7,7 +7,7 @@ import (
 
 // Cases provides a list of plural cases in the order they will be searched.
 // The cases must be listed in ascending number order.
-// They are continuous (i.e. without gaps) and monotonic (i.e. always rising in ordinal).
+// They are contiguous (i.e. without gaps) and monotonic (i.e. always rising in ordinal).
 type Cases struct {
 	indices []int
 	labels  string
