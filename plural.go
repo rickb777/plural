@@ -34,7 +34,9 @@ var AddS = func(noun string) string { return noun + "s" }
 //	plural.Regular("thing")
 //
 // can then be used via [Cases.Countable] or [Cases.Continuous] to produce descriptive formatted
-// values.
+// values. This is equivalent to
+//
+//	plural.FromZero(Zero("thing"), "%v thing", "%v things")
 //
 // Irregular nouns such as "caddy" should not use this function (unless "caddys" really is the plural
 // form you want). Instead, use [Irregular], [FromZero] or [FromOne].
@@ -79,7 +81,9 @@ func FromZero(zeroth string, rest ...string) Cases {
 //	plural.Irregular("caddy", "caddies")
 //
 // can then be used via [Cases.Countable] or [Cases.Continuous] to produce descriptive formatted
-// values.
+// values. This is equivalent to
+//
+//	plural.FromOne("%v caddy", "%v caddies")
 //
 // Like Regular, Irregular is too simplistic for phrases instead of nouns and for any language that
 // uses more than two variants; for these, [FromZero] or [FromOne] will be more appropriate.
